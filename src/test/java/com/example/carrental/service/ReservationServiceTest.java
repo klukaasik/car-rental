@@ -3,6 +3,7 @@ package com.example.carrental.service;
 import com.example.carrental.domain.CarType;
 import com.example.carrental.domain.Reservation;
 import com.example.carrental.exception.InsufficientInventoryException;
+import com.example.carrental.exception.ReservationError;
 import com.example.carrental.repository.InMemoryReservationRepository;
 import com.example.carrental.repository.ReservationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +71,7 @@ class ReservationServiceTest {
                 () -> service.createReservation(customerName, carType, pickupDate, returnDate)
         );
 
-        assertTrue(exception.getMessage().contains("past"));
+        assertEquals(ReservationError.PICKUP_DATE_CANNOT_BE_IN_THE_PAST.getMessage(), exception.getMessage());
     }
 
     @Test
@@ -87,7 +88,7 @@ class ReservationServiceTest {
                 () -> service.createReservation(customerName, carType, pickupDate, returnDate)
         );
 
-        assertTrue(exception.getMessage().contains("return date") || exception.getMessage().contains("after pickup"));
+        assertEquals(ReservationError.RETURN_DATE_MUST_BE_AFTER_PICKUP.getMessage(), exception.getMessage());
     }
 
     @Test
@@ -104,7 +105,7 @@ class ReservationServiceTest {
                 () -> service.createReservation(customerName, carType, pickupDate, returnDate)
         );
 
-        assertTrue(exception.getMessage().contains("return date") || exception.getMessage().contains("after pickup"));
+        assertEquals(ReservationError.RETURN_DATE_MUST_BE_AFTER_PICKUP.getMessage(), exception.getMessage());
     }
 
     @Test
@@ -118,7 +119,7 @@ class ReservationServiceTest {
                 () -> service.createReservation("Customer 2", CarType.SUV, TOMORROW, IN_3_DAYS)
         );
 
-        assertTrue(exception.getMessage().contains("not available"));
+        assertEquals(ReservationError.CAR_NOT_AVAILABLE.getMessage(), exception.getMessage());
     }
 
     @Test
