@@ -14,11 +14,11 @@ import java.util.UUID;
 @Service
 public class ReservationService {
     
-    private final ReservationRepository repository;
+    private final ReservationRepository reservationRepository;
     private final Map<CarType, Long> inventory;
 
-    public ReservationService(ReservationRepository repository, Map<CarType, Long> inventory) {
-        this.repository = repository;
+    public ReservationService(ReservationRepository reservationRepository, Map<CarType, Long> inventory) {
+        this.reservationRepository = reservationRepository;
         this.inventory = inventory;
     }
 
@@ -26,7 +26,7 @@ public class ReservationService {
         validateDates(pickupDate, returnDate);
 
         Long capacity = inventory.getOrDefault(carType, 0L);
-        List<Reservation> existingReservations = repository.findByCarType(carType);
+        List<Reservation> existingReservations = reservationRepository.findByCarType(carType);
         Long overlappingCount = existingReservations.stream()
                                                     .filter(existing -> existing.pickupDate().isBefore(returnDate) &&
                                                     pickupDate.isBefore(existing.returnDate()))
@@ -41,13 +41,13 @@ public class ReservationService {
                 pickupDate,
                 returnDate
         );
-        repository.save(reservation);
+        reservationRepository.save(reservation);
         return reservation;
     }
 
     public Long checkAvailability(CarType carType, LocalDateTime pickupDate, LocalDateTime returnDate) {
         Long capacity = inventory.getOrDefault(carType, 0L);
-        List<Reservation> existingReservations = repository.findByCarType(carType);
+        List<Reservation> existingReservations = reservationRepository.findByCarType(carType);
         Long overlappingCount = existingReservations.stream()
                                                     .filter(existing -> existing.pickupDate().isBefore(returnDate) &&
                                                     pickupDate.isBefore(existing.returnDate()))
