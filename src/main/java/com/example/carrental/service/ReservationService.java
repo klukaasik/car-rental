@@ -3,6 +3,7 @@ package com.example.carrental.service;
 import com.example.carrental.domain.CarType;
 import com.example.carrental.domain.Reservation;
 import com.example.carrental.exception.InsufficientInventoryException;
+import com.example.carrental.exception.ReservationError;
 import com.example.carrental.repository.ReservationRepository;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,7 @@ public class ReservationService {
                                                     pickupDate.isBefore(existing.returnDate()))
                                                     .count();
         if (overlappingCount >= capacity) {
-            throw new InsufficientInventoryException("Car not available");
+            throw new InsufficientInventoryException(ReservationError.CAR_NOT_AVAILABLE);
         }
         Reservation reservation = new Reservation(
                 UUID.randomUUID().toString(),
@@ -57,10 +58,13 @@ public class ReservationService {
 
     private void validateDates(LocalDateTime pickupDate, LocalDateTime returnDate) {
         if (!returnDate.isAfter(pickupDate)) {
-            throw new IllegalArgumentException("Return date must be after pickup date");
+            throw new IllegalArgumentException(ReservationError.RETURN_DATE_MUST_BE_AFTER_PICKUP.getMessage());
         }
         if (pickupDate.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Pickup date cannot be in the past");
+            throw new IllegalArgumentException(ReservationError.PICKUP_DATE_CANNOT_BE_IN_THE_PAST.getMessage());
         }
+//        if (pickupDate.plusHours(1L).isAfter(returnDate)) {
+//            throw new IllegalArgumentException("The minimum reservation time is one hour");
+//        }
     }
 }
