@@ -14,16 +14,16 @@ import java.time.LocalDateTime;
 @RequestMapping("/v1/reservations")
 public class ReservationController {
 
-    private final ReservationService service;
+    private final ReservationService reservationService;
 
-    public ReservationController(ReservationService service) {
-        this.service = service;
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Reservation create(@Valid @RequestBody CreateReservationRequest request) {
-        return service.createReservation(request.customerName(),
+        return reservationService.createReservation(request.customerName(),
                 request.carType(),
                 request.pickupDate(),
                 request.returnDate()
@@ -35,6 +35,6 @@ public class ReservationController {
     public Long availability(@RequestParam CarType carType,
                             @RequestParam LocalDateTime pickupDate,
                             @RequestParam LocalDateTime returnDate) {
-        return service.checkAvailability(carType, pickupDate, returnDate);
+        return reservationService.checkAvailability(carType, pickupDate, returnDate);
     }
 }
