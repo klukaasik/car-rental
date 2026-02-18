@@ -118,7 +118,7 @@ class ReservationServiceTest {
                 () -> service.createReservation("Customer 2", CarType.SUV, TOMORROW, IN_3_DAYS)
         );
 
-        assertTrue(exception.getMessage().contains("insufficient") || exception.getMessage().contains("not available"));
+        assertTrue(exception.getMessage().contains("not available"));
     }
 
     @Test
