@@ -6,6 +6,7 @@ import com.example.carrental.service.ReservationService;
 import com.example.carrental.dto.CreateReservationRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -22,12 +23,12 @@ public class ReservationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Reservation create(@Valid @RequestBody CreateReservationRequest request) {
-        return reservationService.createReservation(request.customerName(),
+    public ResponseEntity<Reservation> create(@Valid @RequestBody CreateReservationRequest request) {
+        Reservation reservation = reservationService.createReservation(request.customerName(),
                 request.carType(),
                 request.pickupDate(),
-                request.returnDate()
-        );
+                request.returnDate());
+        return ResponseEntity.status(HttpStatus.CREATED).body(reservation);
     }
 
     @GetMapping("/availability")
