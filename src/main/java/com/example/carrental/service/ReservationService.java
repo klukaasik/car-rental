@@ -25,13 +25,9 @@ public class ReservationService {
 
     public Reservation createReservation(String customerName, CarType carType, LocalDateTime pickupDate, LocalDateTime returnDate) {
         validateDates(pickupDate, returnDate);
-
         Long capacity = inventory.getOrDefault(carType, 0L);
-        List<Reservation> existingReservations = reservationRepository.findByCarType(carType);
-        Long overlappingCount = existingReservations.stream()
-                                                    .filter(existing -> existing.pickupDate().isBefore(returnDate) &&
-                                                    pickupDate.isBefore(existing.returnDate()))
-                                                    .count();
+        Long overlappingCount = countOverlappingReservations(carType, pickupDate, returnDate);
+
         if (overlappingCount >= capacity) {
             throw new InsufficientInventoryException(ReservationError.CAR_NOT_AVAILABLE);
         }
@@ -48,11 +44,7 @@ public class ReservationService {
 
     public Long checkAvailability(CarType carType, LocalDateTime pickupDate, LocalDateTime returnDate) {
         Long capacity = inventory.getOrDefault(carType, 0L);
-        List<Reservation> existingReservations = reservationRepository.findByCarType(carType);
-        Long overlappingCount = existingReservations.stream()
-                                                    .filter(existing -> existing.pickupDate().isBefore(returnDate) &&
-                                                    pickupDate.isBefore(existing.returnDate()))
-                                                    .count();
+        Long overlappingCount = countOverlappingReservations(carType, pickupDate, returnDate);
         return Math.max(0, capacity - overlappingCount);
     }
 
@@ -66,5 +58,12 @@ public class ReservationService {
 //        if (pickupDate.plusHours(1L).isAfter(returnDate)) {
 //            throw new IllegalArgumentException("The minimum reservation time is one hour");
 //        }
+    }
+
+    private Long countOverlappingReservations(CarType carType, LocalDateTime pickupDate, LocalDateTime returnDate) {
+        List<Reservation> existingReservations = reservationRepository.findByCarType(carType);
+        return existingReservations.stream()
+                .filter(existing -> existing.pickupDate().isBefore(returnDate) && pickupDate.isBefore(existing.returnDate()))
+                .count();
     }
 }
