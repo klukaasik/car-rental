@@ -2,10 +2,12 @@ package com.example.carrental.controller;
 
 import com.example.carrental.domain.CarType;
 import com.example.carrental.domain.Reservation;
+import com.example.carrental.dto.AvailabilityResponse;
 import com.example.carrental.service.ReservationService;
 import com.example.carrental.dto.CreateReservationRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -31,10 +33,11 @@ public class ReservationController {
     }
 
     @GetMapping("/availability")
-    @ResponseStatus(HttpStatus.OK)
-    public Long availability(@RequestParam CarType carType,
-                            @RequestParam LocalDateTime pickupDate,
-                            @RequestParam LocalDateTime returnDate) {
-        return reservationService.checkAvailability(carType, pickupDate, returnDate);
+    public ResponseEntity<AvailabilityResponse> availability(@RequestParam CarType carType,
+                                                             @RequestParam LocalDateTime pickupDate,
+                                                             @RequestParam LocalDateTime returnDate) {
+        Long count = reservationService.checkAvailability(carType, pickupDate, returnDate);
+        AvailabilityResponse response = new AvailabilityResponse(count);
+        return ResponseEntity.ok(response);
     }
 }
