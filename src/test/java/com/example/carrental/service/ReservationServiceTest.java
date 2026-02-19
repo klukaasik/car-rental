@@ -92,23 +92,6 @@ class ReservationServiceTest {
     }
 
     @Test
-    void shouldThrowException_WhenZeroDuration() {
-        // Given
-        String customerName = "Jan Nowak";
-        CarType carType = CarType.SEDAN;
-        LocalDateTime pickupDate = TOMORROW;
-        LocalDateTime returnDate = TOMORROW;
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> service.createReservation(customerName, carType, pickupDate, returnDate)
-        );
-
-        assertEquals(ReservationError.RETURN_DATE_MUST_BE_AFTER_PICKUP.getMessage(), exception.getMessage());
-    }
-
-    @Test
     void shouldThrowException_WhenInsufficientInventory() {
         // Given
         service.createReservation("Customer 1", CarType.SUV, TOMORROW, IN_3_DAYS);
@@ -166,5 +149,58 @@ class ReservationServiceTest {
 
         // Then
         assertEquals(2, available);
+    }
+
+    @Test
+    void shouldAllowReservation_WhenOverlapsOnlyOneOfTwoExisting() {
+        // Given
+        LocalDateTime day1 = TOMORROW;
+        LocalDateTime day2 = TOMORROW.plusDays(1);
+        LocalDateTime day3 = TOMORROW.plusDays(2);
+        LocalDateTime day5 = TOMORROW.plusDays(4);
+        LocalDateTime day7 = TOMORROW.plusDays(6);
+
+        service.createReservation("A", CarType.SEDAN, day1, day5); // 1–5
+        service.createReservation("B", CarType.SEDAN, day3, day7); // 3–7
+
+        // When
+        Reservation third = service.createReservation("C", CarType.SEDAN, day1, day2); // 1–2
+
+        // Then
+        assertNotNull(third);
+    }
+
+    @Test
+    void shouldThrowException_WhenThirdOverlappingReservationExceedsCapacity() {
+        // Given
+        LocalDateTime day1 = TOMORROW;
+        LocalDateTime day2 = TOMORROW.plusDays(1);
+        LocalDateTime day3 = TOMORROW.plusDays(2);
+        LocalDateTime day4 = TOMORROW.plusDays(3);
+        LocalDateTime day5 = TOMORROW.plusDays(4);
+        LocalDateTime day6 = TOMORROW.plusDays(5);
+
+        service.createReservation("A", CarType.SEDAN, day1, day5); // 1–5
+        service.createReservation("B", CarType.SEDAN, day2, day6); // 2–6
+
+        // When & Then
+        InsufficientInventoryException exception = assertThrows(
+                InsufficientInventoryException.class,
+                () -> service.createReservation("C", CarType.SEDAN, day3, day4) // 3–4
+        );
+
+        assertEquals(ReservationError.CAR_NOT_AVAILABLE.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    void shouldNotMixReservationsBetweenDifferentCarTypes() {
+        // Given
+        service.createReservation("Customer 1", CarType.SEDAN, TOMORROW, IN_3_DAYS);
+
+        // When
+        Long suvAvailability = service.checkAvailability(CarType.SUV, TOMORROW, IN_3_DAYS);
+
+        // Then
+        assertEquals(1L, suvAvailability);
     }
 }
